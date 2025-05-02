@@ -77,24 +77,21 @@ def main():
             st.session_state.selected_region = None
             st.experimental_rerun()
         
-        # 원본 이미지와 편집 이미지 표시
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("원본 이미지")
-            st.image(st.session_state.original_image, use_column_width=True)
-        with col2:
-            st.write("정규화된 이미지 (누적 편집본)")
+        # 사이드바에 정규화된 이미지 표시
+        with st.sidebar:
+            st.write("누적 편집본")
             st.image(st.session_state.edit_image, use_column_width=True)
         
+        # 메인 영역
         st.write("마우스로 드래그하여 ROI 영역을 그려주세요.")
-        # 편집본 이미지를 numpy로 변환하여 ROI 선택에 사용
-        edit_np = np.array(st.session_state.edit_image)
-        w, h = edit_np.shape[1], edit_np.shape[0]
+        # 원본 이미지를 numpy로 변환하여 ROI 선택에 사용
+        original_np = np.array(normalized_image)
+        w, h = original_np.shape[1], original_np.shape[0]
         canvas_result = st_canvas(
             fill_color="rgba(0, 255, 0, 0.3)",  # 반투명 녹색
             stroke_width=2,
             stroke_color="#00FF00",
-            background_image=Image.fromarray(edit_np),
+            background_image=Image.fromarray(original_np),
             update_streamlit=True,
             height=h,
             width=w,
@@ -117,7 +114,7 @@ def main():
             
             if st.button("유사 영역 찾기"):
                 # ROI 커널 전처리 (레이아웃 블록만 남기기)
-                roi_kernel = edit_np[y1:y2, x1:x2]
+                roi_kernel = original_np[y1:y2, x1:x2]
                 roi_kernel_edge = preprocess_for_layout(roi_kernel)
                 kernel_h, kernel_w = roi_kernel_edge.shape[:2]
                 slide_imgs = sorted(glob(os.path.join("output_images", "*.png")))
